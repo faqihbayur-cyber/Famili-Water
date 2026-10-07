@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Famili Water Game Center</title>
+  <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#066b77">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="/icon-192.png">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      color: white;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    h1 { margin: 10px 0; font-size: 24px; }
+
+    button {
+      background: #00bcd4;
+      border: none;
+      color: white;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 10px;
+      margin: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+    button:hover { background: #0097a7; }
+
+    footer {
+      text-align: center;
+      padding: 8px;
+      font-size: 13px;
+      color: #ccc;
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+    }
+
+    .game-container {
+      display: none;
+      width: 100%;
+      height: 100vh;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+
+    #menu {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.6s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Tangkap Famili */
+    #catchArea {
+      position: relative;
+      width: 90%;
+      max-width: 360px;
+      height: 60vh;
+      margin-top: 10px;
+      border: 3px solid #fff;
+      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+      touch-action: none;
+    }
+    #player {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 50px;
+      height: 50px;
+      background: radial-gradient(circle, #00d4ff, #0077ff);
+      border-radius: 50%;
+      box-shadow: 0 0 15px #00eaff;
+    }
+    .coin {
+      position: absolute;
+      top: 0;
+      width: 35px;
+      height: 35px;
+      background-image: url('LogoFW.png');
+      background-size: cover;
+      background-position: center;
+      border-radius: 50%;
+    }
+    #gameOver {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 22px;
+      visibility: hidden;
+    }
+
+    /* Tumpuk Bata */
+    #stackContainer canvas {
+      background: rgba(255,255,255,0.08);
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 10px;
+      width: 300px;
+      height: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- MENU -->
+  <div id="menu">
+    <h1>🎮 Famili Water Game Center</h1>
+    <button onclick="showGame('catch')">💰 Tangkap Famili</button>
+    <button onclick="showGame('stack')">🧱 Tumpuk Bata</button>
+  </div>
+
+  <!-- GAME 1 -->
+  <div id="catchGame" class="game-container">
+    <h1>💰 Tangkap Famili</h1>
+    <div id="info">Score: 0 | ❤️❤️❤️</div>
+    <div id="catchArea">
+      <div id="player"></div>
+      <div id="gameOver">
+        <div id="gameOverText">Tingeling Gah!</div>
+        <button onclick="restartCatchGame()">Main Lagi 🔁</button>
+      </div>
+    </div>
+    <button onclick="backToMenu()">🏠 Kembali</button>
+  </div>
+
+  <!-- GAME 2 -->
+  <div id="stackGame" class="game-container">
+    <h1>🧱 Tumpuk Bata</h1>
+    <div id="stackContainer">
+      <canvas id="stackCanvas" width="300"></canvas>
+      <button id="stackStart" onclick="startStack()">Mulai</button>
+      <div>
+        <button onclick="moveBlock('left')">⬅️</button>
+        <button onclick="rotateBlock()">🔄</button>
+        <button onclick="moveBlock('right')">➡️</button>
+        <button onclick="moveBlock('down')">⬇️</button>
+      </div>
+    </div>
+    <button onclick="backToMenu()">🏠 Kembali</button>
+  </div>
+
+  <footer>© 2025 Famili Water — Game Center</footer>
+
+  <script>
+    /* MENU */
+    function showGame(game) {
+      document.getElementById('menu').style.display = 'none';
+      document.getElementById('catchGame').style.display = game === 'catch' ? 'flex' : 'none';
+      document.getElementById('stackGame').style.display = game === 'stack' ? 'flex' : 'none';
+      if (game === 'catch') startCatchGame();
+      if (game === 'stack') stopCatchGame();
+    }
+    function backToMenu() {
+      document.getElementById('menu').style.display = 'flex';
+      document.getElementById('catchGame').style.display = 'none';
+      document.getElementById('stackGame').style.display = 'none';
+      stopCatchGame();
+      stopStack();
+    }
+
+    /* GAME 1: TANGKAP FAMILI */
+    const player = document.getElementById('player');
+    const gameArea = document.getElementById('catchArea');
+    const info = document.getElementById('info');
+    const gameOverScreen = document.getElementById('gameOver');
+
+    let score = 0, lives = 3, playerX = 0, running = false, dropTimer;
+
+    function startCatchGame() {
+      score = 0; lives = 3; running = true;
+      updateInfo();
+      playerX = (gameArea.clientWidth - player.clientWidth) / 2;
+      player.style.left = playerX + 'px';
+      dropTimer = setInterval(spawnCoin, 800);
+    }
+    function stopCatchGame() {
+      running = false;
+      clearInterval(dropTimer);
+      document.querySelectorAll('.coin').forEach(c => c.remove());
+    }
+    function restartCatchGame() {
+      gameOverScreen.style.visibility = 'hidden';
+      startCatchGame();
+    }
+
+    function spawnCoin() {
+      if (!running) return;
+      const coin = document.createElement('div');
+      coin.className = 'coin';
+      coin.style.left = Math.random() * (gameArea.clientWidth - 40) + 'px';
+      gameArea.appendChild(coin);
+      let posY = 0;
+      const speed = 3 + Math.random() * 2;
+      function fall() {
+        if (!running) { coin.remove(); return; }
+        posY += speed;
+        coin.style.top = posY + 'px';
+        const pRect = player.getBoundingClientRect();
+        const cRect = coin.getBoundingClientRect();
+        if (cRect.bottom >= pRect.top && cRect.left < pRect.right && cRect.right > pRect.left) {
+          score++; updateInfo(); coin.remove(); return;
+        }
+        if (posY < gameArea.clientHeight) requestAnimationFrame(fall);
+        else { coin.remove(); lives--; updateInfo(); if (lives <= 0) endCatchGame(); }
+      }
+      requestAnimationFrame(fall);
+    }
+
+    function movePlayer(dx) {
+      playerX += dx;
+      playerX = Math.max(0, Math.min(gameArea.clientWidth - player.clientWidth, playerX));
+      player.style.left = playerX + 'px';
+    }
+    document.addEventListener('keydown', e => {
+      if (!running) return;
+      if (e.key === 'ArrowLeft') movePlayer(-30);
+      if (e.key === 'ArrowRight') movePlayer(30);
+    });
+    gameArea.addEventListener('touchmove', e => {
+      if (!running) return;
+      const touchX = e.touches[0].clientX - gameArea.getBoundingClientRect().left;
+      playerX = touchX - player.clientWidth / 2;
+      movePlayer(0);
+    });
+
+    function updateInfo() {
+      info.innerHTML = `Score: ${score} | ${'❤️'.repeat(lives)}`;
+    }
+    function endCatchGame() {
+      running = false;
+      gameOverScreen.style.visibility = 'visible';
+      document.getElementById('gameOverText').textContent = `Game Over! Skor kamu: ${score}`;
+    }
+
+    /* GAME 2: TUMPUK BATA */
+    const canvas = document.getElementById('stackCanvas');
+    const ctx = canvas.getContext('2d');
+    const cols = 10, rows = 20, size = canvas.width / cols;
+    canvas.height = size * rows;
+
+    let grid, piece, interval, playing = false, score2 = 0;
+    const shapes = [
+      [[1,1,1,1]], [[1,1,1],[0,1,0]], [[1,1,0],[0,1,1]],
+      [[0,1,1],[1,1,0]], [[1,1],[1,1]]
+    ];
+
+    function startStack() {
+      grid = Array.from({length:rows},()=>Array(cols).fill(0));
+      score2=0; piece=createPiece(); playing=true;
+      document.getElementById('stackStart').style.display='none';
+      interval=setInterval(updateStack,500);
+      drawStack();
+    }
+    function stopStack() {
+      clearInterval(interval);
+      playing=false;
+      document.getElementById('stackStart').style.display='block';
+    }
+    function createPiece(){
+      const s=shapes[Math.floor(Math.random()*shapes.length)];
+      return {shape:s,x:Math.floor((cols-s[0].length)/2),y:0};
+    }
+    function drawStack(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      for(let y=0;y<rows;y++)for(let x=0;x<cols;x++)if(grid[y][x])drawBlock(x,y,'#00e5ff');
+      piece.shape.forEach((r,dy)=>r.forEach((v,dx)=>v&&drawBlock(piece.x+dx,piece.y+dy,'#fff176')));
+      ctx.fillStyle='#fff';ctx.font='14px Poppins';ctx.fillText(`Skor: ${score2}`,8,20);
+    }
+    function drawBlock(x,y,c){ctx.fillStyle=c;ctx.fillRect(x*size+1,y*size+1,size-2,size-2);}
+    function merge(){piece.shape.forEach((r,dy)=>r.forEach((v,dx)=>{if(v)grid[piece.y+dy][piece.x+dx]=1;}));}
+    function collide(){for(let y=0;y<piece.shape.length;y++)for(let x=0;x<piece.shape[y].length;x++){if(piece.shape[y][x]){let ny=piece.y+y,nx=piece.x+x;if(ny>=rows||nx<0||nx>=cols||grid[ny][nx])return true;}}return false;}
+    function clearLines(){for(let y=rows-1;y>=0;y--){if(grid[y].every(v=>v)){grid.splice(y,1);grid.unshift(Array(cols).fill(0));score2+=100;y++;}}}
+    function updateStack(){piece.y++;if(collide()){piece.y--;merge();clearLines();piece=createPiece();if(collide()){alert(`Permainan Selesai!\nSkor kamu: ${score2}`);stopStack();}}drawStack();}
+    function moveBlock(d){if(!playing)return;if(d==='left'){piece.x--;if(collide())piece.x++;}else if(d==='right'){piece.x++;if(collide())piece.x--;}else if(d==='down'){updateStack();}drawStack();}
+    function rotateBlock(){if(!playing)return;const r=piece.shape[0].map((_,i)=>piece.shape.map(r=>r[i]).reverse());const o=piece.shape;piece.shape=r;if(collide())piece.shape=o;drawStack();}
+    document.addEventListener('keydown',e=>{if(!playing)return;if(e.key==='ArrowLeft')moveBlock('left');else if(e.key==='ArrowRight')moveBlock('right');else if(e.key==='ArrowDown')moveBlock('down');else if(e.key==='ArrowUp')rotateBlock();});
+  </script>
+</body>
+</html>

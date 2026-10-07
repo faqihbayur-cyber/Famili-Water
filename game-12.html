@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Outrun — Game Seru</title>
+<style>
+    html, body {
+        margin:0;
+        padding:0;
+        width:100%;
+        height:100%;
+        background:#111;
+        font-family:Arial, sans-serif;
+        display:flex;
+        flex-direction:column;
+        justify-content:center;
+        align-items:center;
+        overflow:hidden; /* hilangkan scroll */
+    }
+
+    .game-container {
+        width:100%;
+        height:calc(100% - 60px); /* sisakan untuk tombol */
+        display:flex;
+        justify-content:center;
+        align-items:center;
+    }
+
+    iframe {
+        width:100%;
+        height:100%;
+        max-width:100%;
+        max-height:100%;
+        border:none;
+        border-radius:12px;
+        object-fit:contain; /* menjaga rasio game tetap utuh */
+    }
+
+    .btn-back {
+        width:90%;
+        max-width:400px;
+        margin:5px 0 10px 0;
+        background:#00AEEF;
+        color:white;
+        padding:12px 20px;
+        font-size:16px;
+        border-radius:8px;
+        text-decoration:none;
+        font-weight:bold;
+        text-align:center;
+    }
+
+    @media screen and (orientation:landscape){
+        .game-container {
+            height:100%;
+        }
+        iframe {
+            width:100%;
+            height:100%;
+        }
+    }
+</style>
+</head>
+<body>
+
+<div class="game-container">
+    <iframe src="https://funhtml5games.com?embed=outrun" scrolling="no"></iframe>
+</div>
+
+<a class="btn-back" href="game.html">⟵ Kembali</a>
+
+</body>
+</html>

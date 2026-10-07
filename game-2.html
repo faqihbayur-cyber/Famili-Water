@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>flappybird</title>
+
+<style>
+    body{
+        margin:0;
+        padding:0;
+        background:#FFF7E9;
+        font-family:Arial, sans-serif;
+        text-align:center;
+        color:#222;
+        overflow:hidden; /* hilangkan scroll */
+    }
+
+    .btn-back{
+        position: fixed;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background:#00AEEF;
+        color:white;
+        padding:7px 16px;
+        font-size:14px;
+        border-radius:7px;
+        text-decoration:none;
+        font-weight:bold;
+        z-index:1000;
+    }
+
+    iframe{
+        width:100vw;
+        height:100vh;
+        border:none;
+        display:block;
+    }
+</style>
+</head>
+<body>
+
+<!-- Tombol kembali -->
+<a class="btn-back" href="gamefw.html">⟵ Kembali</a>
+
+<!-- Game fullscreen -->
+<iframe src="https://flappybird.io/" allowfullscreen></iframe>
+
+</body>
+</html>
