@@ -87,3 +87,16 @@ footer h4{color:#fff;margin-bottom:12px;font-size:15px}footer a{display:block;ma
 .burger{display:flex}.links{position:fixed;top:var(--nav-h);left:0;right:0;background:#fff;flex-direction:column;padding:16px 20px 24px;gap:6px;border-bottom:1px solid var(--line);transform:translateY(-130%);transition:transform .35s;z-index:-1;align-items:stretch;text-align:center}.links.open{transform:none}.links .btn{margin:8px 0 0;justify-content:center}}
 @media(max-width:560px){.frow{grid-template-columns:1fr}.chip.c1{left:0}.chip.c2{right:0}.calc>div{padding:28px}.grid4{grid-template-columns:1fr}.stats{gap:10px}.stat{padding:16px 8px}.stat b{font-size:24px}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* Popup Aplikasi Member */
+.pop{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(6,47,128,.55);backdrop-filter:blur(6px);opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s}
+.pop.show{opacity:1;visibility:visible}
+.pop-box{position:relative;width:100%;max-width:400px;background:#fff;border-radius:var(--r);padding:36px 28px 28px;text-align:center;box-shadow:0 24px 60px rgba(6,47,128,.35);transform:translateY(24px) scale(.94);transition:transform .3s cubic-bezier(.2,.9,.3,1.2);display:flex;flex-direction:column;align-items:center;gap:12px}
+.pop.show .pop-box{transform:none}
+.pop-ico{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--brand),var(--sky));box-shadow:0 10px 26px rgba(10,75,194,.35);animation:popPulse 2s ease-in-out infinite}
+.pop-box h3{font-size:28px;font-weight:800;color:var(--brand)}
+.pop-box p{color:var(--muted);font-size:15px;margin-bottom:6px}
+.pop-box .btn{width:100%;justify-content:center}
+.pop-x{position:absolute;top:12px;right:14px;width:34px;height:34px;border:0;border-radius:50%;background:#eef4ff;color:var(--brand);font-size:22px;line-height:1;cursor:pointer;transition:.2s}
+.pop-x:hover{background:#dce6f7;transform:rotate(90deg)}
+@keyframes popPulse{0%,100%{box-shadow:0 10px 26px rgba(10,75,194,.35)}50%{box-shadow:0 10px 36px rgba(39,182,255,.6)}}
