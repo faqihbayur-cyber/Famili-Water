@@ -1,4 +1,23 @@
-
+/* ---- Penghitung pengunjung (Firestore REST, tanpa SDK) ----
+   1 browser dihitung 1x per hari (WIB). "baru" = browser yang pertama kali datang.
+   Ditaruh paling atas supaya tetap jalan walau script di bawah error. */
+(function(){try{
+if(navigator.webdriver||/bot|crawl|spider|slurp|headless|lighthouse|preview/i.test(navigator.userAgent))return;
+var K_ID='fw_vid',K_DAY='fw_vday',P='klien2',KEY='AIzaSyB3UfH10F8SwiEXSZvjTakSxhKoaVo6VCs';
+var day=new Date(Date.now()+7*36e5).toISOString().slice(0,10);
+var last=localStorage.getItem(K_DAY);if(last===day)return;
+var baru=localStorage.getItem(K_ID)?0:1;
+var base='projects/'+P+'/databases/(default)/documents/';
+function w(path,fields){return{update:{name:base+path,fields:fields},updateMask:{fieldPaths:Object.keys(fields)},
+updateTransforms:[{fieldPath:'total',increment:{integerValue:'1'}},{fieldPath:'baru',increment:{integerValue:String(baru)}}]}}
+var body={writes:[w('visits/'+day,{tanggal:{stringValue:day}}),w('visitStats/all',{})]};
+fetch('https://firestore.googleapis.com/v1/projects/'+P+'/databases/(default)/documents:commit?key='+KEY,
+{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),keepalive:true})
+.then(function(r){if(!r.ok)return;
+localStorage.setItem(K_DAY,day);
+if(!localStorage.getItem(K_ID))localStorage.setItem(K_ID,Math.random().toString(36).slice(2)+Date.now().toString(36));
+}).catch(function(){});
+}catch(e){}})();
 const $=(s,c=document)=>c.querySelector(s),$$=(s,c=document)=>[...c.querySelectorAll(s)];
 function showToast(msg,err){let b=$('.toast-box');if(!b){b=document.createElement('div');b.className='toast-box';document.body.appendChild(b)}
 const t=document.createElement('div');t.className='toast'+(err?' err':'');t.textContent=msg;b.appendChild(t);setTimeout(()=>t.remove(),3200)}
