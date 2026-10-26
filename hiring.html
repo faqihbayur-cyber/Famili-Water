@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Lowongan Kurir Galon — FAMILI WATER</title>
-<meta name="description" content="Lowongan Kurir Distribusi Galon FAMILI WATER di Bayur Lor, Cilamaya Kulon. Pelajari kualifikasi, sistem gaji, tahapan seleksi, lalu kirim lamaran via WhatsApp.">
+<meta name="description" content="Lowongan Kurir Distribusi Galon FAMILI WATER di Bayur Lor, Cilamaya Kulon. Khusus pelamar yang tinggal dekat Bayur Lor. Pelajari kualifikasi, sistem gaji, tahapan seleksi, lalu kirim lamaran via WhatsApp.">
 <meta name="robots" content="index,follow">
 <meta name="theme-color" content="#0a4bc2">
 <link rel="canonical" href="https://familiwater.suruhbeli.com/hiring">
@@ -290,9 +290,9 @@ footer .copy{width:100%;border-top:1px solid rgba(255,255,255,.12);padding-top:1
 <section class="hero" id="beranda">
   <div class="wrap">
     <div>
-      <span class="tag"><i></i> Lowongan dibuka · Kurir Distribusi Galon</span>
+      <span class="tag"><i></i> Lowongan dibuka · Khusus warga sekitar Bayur Lor</span>
       <h1>JADI BAGIAN DARI TIM <span>FAMILI WATER</span></h1>
-      <p class="lead">Kesempatan bergabung bersama tim distribusi kami. Kerja dengan tanggung jawab, berkembang bersama perusahaan.</p>
+      <p class="lead">Kesempatan bergabung bersama tim distribusi kami. <b>Khusus yang tinggal terdekat dari Bayur Lor, Cilamaya Kulon.</b> Pelanggan sudah ada, tinggal keliling.</p>
       <div class="cta-row">
         <a class="btn btn-accent" href="#daftar">DAFTAR SEKARANG</a>
         <a class="btn btn-ghost" href="#kerja">PELAJARI SISTEM KERJA</a>
@@ -319,6 +319,9 @@ footer .copy{width:100%;border-top:1px solid rgba(255,255,255,.12);padding-top:1
       <div class="card info-card reveal"><span class="k">Posisi</span><span class="v">Kurir Distribusi Galon</span></div>
       <div class="card info-card reveal"><span class="k">Perusahaan</span><span class="v">FAMILI WATER</span></div>
       <div class="card info-card reveal"><span class="k">Lokasi</span><span class="v">Bayur Lor, Kec. Cilamaya Kulon</span></div>
+    </div>
+    <div class="desc reveal" style="border-color:var(--accent);background:#fff7ea">
+      <p><b>Penting sebelum mendaftar.</b> Lowongan ini hanya untuk pelamar yang <b>berdomisili terdekat dari Bayur Lor</b> (Cilamaya Kulon dan desa sekitarnya). Kami tidak menyediakan mess. Lamaran dari luar daerah tidak kami proses.</p>
     </div>
     <div class="desc reveal">
       <p><b>Deskripsi pekerjaan.</b> Kurir bertugas mendistribusikan galon air Famili Water kepada pelanggan, menjaga kualitas pelayanan, memastikan pesanan diterima dengan baik, serta melakukan pencatatan pengantaran dan pembayaran sesuai SOP perusahaan.</p>
@@ -531,8 +534,8 @@ footer .copy{width:100%;border-top:1px solid rgba(255,255,255,.12);padding-top:1
         </div>
         <div class="field full" data-f="alamat">
           <label for="alamat">Alamat tempat tinggal <span class="req">*</span></label>
-          <textarea id="alamat" name="alamat" rows="2" autocomplete="street-address" placeholder="Desa/dusun, kecamatan"></textarea>
-          <span class="msg">Alamat wajib diisi.</span>
+          <textarea id="alamat" name="alamat" rows="2" autocomplete="street-address" placeholder="Desa/dusun, kecamatan (harus sekitar Bayur Lor)"></textarea>
+          <span class="msg">Alamat wajib diisi. Hanya untuk yang tinggal terdekat dari Bayur Lor.</span>
         </div>
         <div class="field" data-f="motor">
           <label for="motor">Kepemilikan motor <span class="req">*</span></label>
@@ -669,6 +672,7 @@ var CONFIG = {
 
 /* ====================== KUALIFIKASI (edit daftar di sini) ====================== */
 var KUALIFIKASI = [
+  "Berdomisili terdekat dari Bayur Lor, Cilamaya Kulon dan sekitarnya (bukan dari luar daerah).",
   "Diutamakan memiliki sepeda motor bebek seperti Honda Supra.",
   "Mampu mengendarai sepeda motor dengan baik.",
   "Memiliki kondisi fisik yang prima.",
@@ -836,6 +840,10 @@ function buildFaq(){
     : "";
 
   return [
+    { q: "Saya tinggal di luar daerah (misal Bekasi), boleh daftar?",
+      a: "Mohon maaf, lowongan ini khusus pelamar yang berdomisili terdekat dari Bayur Lor, Cilamaya Kulon dan sekitarnya. Lamaran dari luar daerah tidak kami proses." },
+    { q: "Apakah disediakan mess atau tempat tinggal?",
+      a: "Tidak. Karena itu kami mencari pelamar yang sudah tinggal dekat lokasi kerja." },
     { q: "Berapa gaji pokok kurir Famili Water?",
       a: "Gaji pokok " + rp(C.gajiPokokBulanan) + " per bulan (sekitar " + rp(C.gajiPokokHarian) + " per hari berdasarkan " + C.hariKerjaPerBulan + " hari kerja). Target wajib harian " + C.targetHarian + " galon." + potTxt + sepiTxt + " Rincian lengkap dijelaskan saat wawancara." },
     { q: "Bagaimana sistem bonus produktivitas?", a: bonusTxt },
