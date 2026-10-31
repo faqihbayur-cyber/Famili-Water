@@ -31,7 +31,7 @@ const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){x.target
 $$('.reveal').forEach((el,i)=>{el.style.transitionDelay=(i%4)*70+'ms';io.observe(el)});
 $$('.tab').forEach(t=>t.onclick=()=>{$$('.tab').forEach(x=>x.classList.toggle('on',x===t));$$('.pane').forEach(p=>p.classList.toggle('on',p.id===t.dataset.p))});
 const num=$('#people');if(num){let n=4;const up=()=>{num.value=n;$('#galon').textContent=Math.max(1,Math.ceil(n*2*7/19));
-$('#calcWa').href='https://wa.me/6285759995235?text='+encodeURIComponent('Halo FAMILI WATER, keluarga saya '+n+' orang. Saya ingin langganan sekitar '+$('#galon').textContent+' galon per minggu.')};
+$('#calcWa').href='https://wa.me/6285287416936?text='+encodeURIComponent('Halo FAMILI WATER, keluarga saya '+n+' orang. Saya ingin langganan sekitar '+$('#galon').textContent+' galon per minggu.')};
 $('#plus').onclick=()=>{n=Math.min(20,n+1);up()};$('#minus').onclick=()=>{n=Math.max(1,n-1);up()};up()}
 const q=$('#q');if(q)q.oninput=()=>$$('.gcard').forEach(c=>c.classList.toggle('hide',!c.dataset.n.includes(q.value.toLowerCase())));
 const f=$('#form');if(f)$('#kirim').onclick=()=>{
@@ -40,5 +40,5 @@ $$('input',f).forEach(i=>i.classList.remove('bad'));
 for(const id of ids){const el=$('#'+id),v=el.value.trim();if(!v||(id==='jumlah'&&!(Number(v)>=1))){el.classList.add('bad');el.focus();return showToast(msg[id]+' wajib diisi dengan benar',1)}}
 if(!$('#agree').checked)return showToast('Centang persetujuan dulu ya',1);
 const go=()=>{const t=['Halo Admin FAMILI WATER, saya ingin menjadi mitra.','Nama: '+$('#name').value.trim(),'Daerah (Kecamatan): '+$('#daerah').value.trim(),'Lokasi (Desa/Kelurahan): '+$('#lokasi').value.trim(),'Jumlah awal (galon): '+$('#jumlah').value.trim()].join('\n');
-showToast('Mengarahkan ke WhatsApp…');setTimeout(()=>location.href='https://wa.me/6285759995235?text='+encodeURIComponent(t),700)};
+showToast('Mengarahkan ke WhatsApp…');setTimeout(()=>location.href='https://wa.me/6285287416936?text='+encodeURIComponent(t),700)};
 Number($('#jumlah').value)<4?showConfirm('Jumlah kurang dari minimal 4 galon. Tetap lanjut?',go):go()};
