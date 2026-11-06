@@ -34,7 +34,9 @@ var NO='6285287416936',END=Date.parse('2026-12-01T00:00:00+07:00'),
 btn=$id('promoBtn'),st=$id('promoStatus'),sisa=$id('sisaHari'),md=$id('namaModal'),inp=$id('nmInput'),busy=false;
 function say(t,err){st.textContent=t;st.className='promo-status'+(err?' err':'')}
 function link(loc,nama){
-var L=['Halo FAMILI WATER, saya mau ambil PROMO PELANGGAN BARU (5.999).','','Kode: PROMO-NOV26','Nama: '+nama];
+var L=['Halo FAMILI WATER, saya mau ambil PROMO PELANGGAN BARU (5.999).','',refKode?'Kode Promo: PROMO-NOV26':'Kode: PROMO-NOV26'];
+if(refKode)L.push('Sumber Promosi: '+refKode);
+L.push('Nama: '+nama);
 if(loc){L.push('Lokasi rumah: https://maps.google.com/?q='+loc.lat+','+loc.lng);L.push('(akurasi sekitar '+loc.acc+' m)')}
 else L.push('Lokasi rumah: (belum terkirim, mohon saya kirim lewat WhatsApp)');
 return 'https://wa.me/'+NO+'?text='+encodeURIComponent(L.join('\n'))}
@@ -45,9 +47,49 @@ btn.href='https://wa.me/'+NO+'?text='+encodeURIComponent('Halo FAMILI WATER, say
 return}
 var d=Math.ceil((END-Date.now())/864e5);
 if(d<=9)sisa.textContent='Tinggal '+d+' hari lagi, sampai 30 November 2026';
+/* ---- Sumber promosi (endorse): ?ref=KODE, divalidasi ke Firestore kode_promo/{KODE}. Hanya pelacakan, bukan diskon. ---- */
+var FKEY='AIzaSyB3UfH10F8SwiEXSZvjTakSxhKoaVo6VCs',PID='klien2',RK='fw_ref',TTL=7*864e5,refKode='';
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function lsDel(k){try{localStorage.removeItem(k)}catch(e){}}
+function tsOf(v,akhir){if(!v)return null;if(v.timestampValue)return Date.parse(v.timestampValue);
+if(v.stringValue&&/^\d{4}-\d{2}-\d{2}$/.test(v.stringValue))return Date.parse(v.stringValue+(akhir?'T23:59:59.999+07:00':'T00:00:00+07:00'));return NaN}
+function kodeValid(j,kode){var f=j&&j.fields;if(!f)return false;
+if(!f.aktif||f.aktif.booleanValue!==true)return false;
+if(!f.jenis||f.jenis.stringValue!=='endorse')return false;
+if(!f.kode||f.kode.stringValue!==kode)return false;
+var a=tsOf(f.tanggalMulai,false),b=tsOf(f.tanggalSelesai,true),n=Date.now();
+if(a!==null&&!(n>=a))return false;if(b!==null&&!(n<=b))return false;return true}
+/* true = valid, false = tidak ada/nonaktif/kadaluarsa, null = Firestore tidak terjangkau */
+function cekKode(kode){return new Promise(function(ok){
+var ctl=window.AbortController?new AbortController():null,tm=setTimeout(function(){if(ctl)ctl.abort();ok(null)},4000);
+fetch('https://firestore.googleapis.com/v1/projects/'+PID+'/databases/(default)/documents/kode_promo/'+encodeURIComponent(kode)+'?key='+FKEY,ctl?{signal:ctl.signal}:{})
+.then(function(r){if(r.status===404||r.status===403)return false;if(!r.ok)return null;return r.json().then(function(j){return kodeValid(j,kode)})})
+.then(function(v){clearTimeout(tm);ok(v)},function(){clearTimeout(tm);ok(null)})})}
+var urlRef='';try{urlRef=(new URLSearchParams(location.search).get('ref')||'').trim().toUpperCase()}catch(e){}
+if(!/^[A-Z0-9_-]{3,30}$/.test(urlRef))urlRef='';
+var saved='',st0=null;try{st0=JSON.parse(lsGet(RK)||'null')}catch(e){}
+if(st0&&typeof st0.kode==='string'&&st0.t&&Date.now()-st0.t<TTL)saved=st0.kode;else if(st0)lsDel(RK);
+var cand=[];if(urlRef)cand.push(urlRef);if(saved&&saved!==urlRef)cand.push(saved);
+/* Statistik admin: promo_stat/{KODE}_{tanggal} -> dilihat (buka link kreator), ambil (tekan Ambil Promo). Maks 1x per browser per hari per kode. */
+function logStat(kode,jenis){try{
+var day=new Date(Date.now()+7*36e5).toISOString().slice(0,10),key='fw_s_'+jenis+'_'+kode;
+if(lsGet(key)===day)return;
+var base='projects/'+PID+'/databases/(default)/documents/';
+var body={writes:[{update:{name:base+'promo_stat/'+kode+'_'+day,fields:{kode:{stringValue:kode},tanggal:{stringValue:day}}},updateMask:{fieldPaths:['kode','tanggal']},
+updateTransforms:[{fieldPath:'dilihat',increment:{integerValue:jenis==='dilihat'?'1':'0'}},{fieldPath:'ambil',increment:{integerValue:jenis==='ambil'?'1':'0'}}]}]};
+fetch('https://firestore.googleapis.com/v1/projects/'+PID+'/databases/(default)/documents:commit?key='+FKEY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),keepalive:true})
+.then(function(r){if(r.ok)lsSet(key,day)}).catch(function(){})}catch(e){}}
+function nextCand(i){if(i>=cand.length)return Promise.resolve();
+return cekKode(cand[i]).then(function(r){
+if(r===true){refKode=cand[i];if(cand[i]===urlRef){lsSet(RK,JSON.stringify({kode:refKode,t:Date.now()}));logStat(refKode,'dilihat')}return}
+if(r===false&&cand[i]===saved)lsDel(RK);
+return nextCand(i+1)})}
+var refP=nextCand(0).catch(function(){});
+function refWait(){return Promise.race([refP,new Promise(function(r){setTimeout(r,2500)})])}
 function getNama(){try{return localStorage.getItem('fw_nama')||''}catch(e){return ''}}
 function saveNama(v){try{localStorage.setItem('fw_nama',v)}catch(e){}}
-function go(loc,nama){location.href=link(loc,nama);setTimeout(function(){busy=false;btn.classList.remove('loading');say('')},2500)}
+function go(loc,nama){if(refKode)logStat(refKode,'ambil');location.href=link(loc,nama);setTimeout(function(){busy=false;btn.classList.remove('loading');say('')},2500)}
 function mulai(nama){
 busy=true;btn.classList.add('loading');
 if(!navigator.geolocation){say('Lokasi tidak tersedia. WhatsApp tetap dibuka.',1);return setTimeout(function(){go(null,nama)},900)}
@@ -61,7 +103,7 @@ setTimeout(function(){go(null,nama)},1300)
 },{enableHighAccuracy:true,timeout:10000,maximumAge:60000})}
 function buka(){md.classList.add('on');inp.value=getNama();setTimeout(function(){inp.focus()},50)}
 function tutup(){md.classList.remove('on')}
-function lanjut(){var v=inp.value.trim().replace(/\s+/g,' ');if(v.length<2){inp.classList.add('bad');inp.focus();return}inp.classList.remove('bad');saveNama(v);tutup();mulai(v)}
+function lanjut(){var v=inp.value.trim().replace(/\s+/g,' ');if(v.length<2){inp.classList.add('bad');inp.focus();return}inp.classList.remove('bad');saveNama(v);tutup();busy=true;btn.classList.add('loading');refWait().then(function(){mulai(v)})}
 btn.addEventListener('click',function(e){e.preventDefault();if(busy)return;buka()});
 $id('nmNo').addEventListener('click',tutup);
 $id('nmYes').addEventListener('click',lanjut);
