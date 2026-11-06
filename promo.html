@@ -71,7 +71,7 @@ if(!/^[A-Z0-9_-]{3,30}$/.test(urlRef))urlRef='';
 var saved='',st0=null;try{st0=JSON.parse(lsGet(RK)||'null')}catch(e){}
 if(st0&&typeof st0.kode==='string'&&st0.t&&Date.now()-st0.t<TTL)saved=st0.kode;else if(st0)lsDel(RK);
 var cand=[];if(urlRef)cand.push(urlRef);if(saved&&saved!==urlRef)cand.push(saved);
-/* Statistik admin: promo_stat/{KODE}_{tanggal} -> dilihat (buka link kreator), ambil (tekan Ambil Promo). Maks 1x per browser per hari per kode. */
+/* Statistik admin: promo_stat/{KODE}_{tanggal} -> dilihat (buka link kreator), ambil (klik Lanjut di modal nama; tanpa kode = UMUM). Maks 1x per browser per hari per kode. */
 function logStat(kode,jenis){try{
 var day=new Date(Date.now()+7*36e5).toISOString().slice(0,10),key='fw_s_'+jenis+'_'+kode;
 if(lsGet(key)===day)return;
@@ -89,7 +89,7 @@ var refP=nextCand(0).catch(function(){});
 function refWait(){return Promise.race([refP,new Promise(function(r){setTimeout(r,2500)})])}
 function getNama(){try{return localStorage.getItem('fw_nama')||''}catch(e){return ''}}
 function saveNama(v){try{localStorage.setItem('fw_nama',v)}catch(e){}}
-function go(loc,nama){if(refKode)logStat(refKode,'ambil');location.href=link(loc,nama);setTimeout(function(){busy=false;btn.classList.remove('loading');say('')},2500)}
+function go(loc,nama){location.href=link(loc,nama);setTimeout(function(){busy=false;btn.classList.remove('loading');say('')},2500)}
 function mulai(nama){
 busy=true;btn.classList.add('loading');
 if(!navigator.geolocation){say('Lokasi tidak tersedia. WhatsApp tetap dibuka.',1);return setTimeout(function(){go(null,nama)},900)}
@@ -103,7 +103,7 @@ setTimeout(function(){go(null,nama)},1300)
 },{enableHighAccuracy:true,timeout:10000,maximumAge:60000})}
 function buka(){md.classList.add('on');inp.value=getNama();setTimeout(function(){inp.focus()},50)}
 function tutup(){md.classList.remove('on')}
-function lanjut(){var v=inp.value.trim().replace(/\s+/g,' ');if(v.length<2){inp.classList.add('bad');inp.focus();return}inp.classList.remove('bad');saveNama(v);tutup();busy=true;btn.classList.add('loading');refWait().then(function(){mulai(v)})}
+function lanjut(){var v=inp.value.trim().replace(/\s+/g,' ');if(v.length<2){inp.classList.add('bad');inp.focus();return}inp.classList.remove('bad');saveNama(v);tutup();busy=true;btn.classList.add('loading');refWait().then(function(){logStat(refKode||'UMUM','ambil');mulai(v)})}
 btn.addEventListener('click',function(e){e.preventDefault();if(busy)return;buka()});
 $id('nmNo').addEventListener('click',tutup);
 $id('nmYes').addEventListener('click',lanjut);
