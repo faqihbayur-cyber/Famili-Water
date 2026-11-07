@@ -1,7 +1,10 @@
 /* chat.js — chat anonim pelanggan FAMILI WATER (tanpa WhatsApp)
    - Firebase SDK baru dimuat saat chat dibuka (halaman tetap ringan).
    - Semua tulisan lewat Cloud Functions (kirimPesan, kirimOrder, tandaiDibaca). Klien hanya membaca chat miliknya.
-   - Pasang: <script src="chat.js" defer></script> sebelum </body>. Tombol tambahan: atribut data-fwchat pada elemen apa saja. */
+   - Style ada di style.css (bagian "Chat FAMILI WATER"). Halaman yang memasang chat.js harus memuat style.css.
+   - Pasang: <script src="chat.js" defer></script> sebelum </body>.
+   - Tombol pembuka: atribut data-fwchat pada elemen apa saja (contoh: tombol di hero index.html).
+     Kalau ada elemen data-fwchat di halaman, tombol melayang di pojok kiri bawah disembunyikan. */
 (function () {
   'use strict';
   if (window.FWChat) return;
@@ -22,73 +25,39 @@
     sdk: 'https://www.gstatic.com/firebasejs/10.14.1/'
   };
 
-  var S = { app: null, pushSkip: false, open: false, initP: null, uid: null, chat: null, msgs: [], sending: false, marking: false, formOpen: false, call: null };
+  var S = { app: null, pushSkip: false, open: false, hist: false, initP: null, uid: null, chat: null, msgs: [], sending: false, marking: false, formOpen: false, call: null };
   var $ = function (s, c) { return (c || document).querySelector(s); };
   function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
 
-  /* ====== STYLE ====== */
-  var css = '' +
-    '.fwc-fab{position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:9990;display:flex;align-items:center;gap:8px;border:0;border-radius:99px;background:var(--brand,#0a4bc2);color:#fff;font:700 15px/1 "Plus Jakarta Sans",system-ui,sans-serif;padding:14px 18px;box-shadow:0 8px 22px rgba(10,75,194,.35);cursor:pointer}' +
-    '.fwc-fab b{background:#ff5a36;border-radius:99px;min-width:20px;padding:3px 6px;font-size:12px;text-align:center}' +
-    '.fwc-fab b[hidden]{display:none}' +
-    '.fwc-sheet{position:fixed;left:0;right:0;bottom:0;z-index:9999;margin:0 auto;width:100%;max-width:440px;height:80vh;height:80dvh;max-height:640px;background:#fff;color:#1a2430;border-radius:20px 20px 0 0;box-shadow:0 -8px 40px rgba(0,0,0,.25);display:none;flex-direction:column;font:500 15px/1.45 "Plus Jakarta Sans",system-ui,sans-serif}' +
-    '.fwc-sheet.on{display:flex}' +
-    '.fwc-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;padding:14px 16px;background:var(--brand,#0a4bc2);color:#fff;border-radius:20px 20px 0 0}' +
-    '.fwc-head b{display:block;font-size:16px}.fwc-head small{display:block;font-size:12px;opacity:.9;margin-top:2px}' +
-    '.fwc-x{border:0;background:rgba(255,255,255,.2);color:#fff;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer;flex:none}' +
-    '.fwc-list{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px;background:#f4f7fb}' +
-    '.fwc-m{max-width:82%;padding:9px 12px;border-radius:14px;word-wrap:break-word;white-space:pre-wrap}' +
-    '.fwc-m small{display:block;font-size:11px;opacity:.65;margin-top:3px}' +
-    '.fwc-m.me{align-self:flex-end;background:var(--brand,#0a4bc2);color:#fff;border-bottom-right-radius:4px}' +
-    '.fwc-m.ad{align-self:flex-start;background:#fff;border:1px solid #e1e6ec;border-bottom-left-radius:4px}' +
-    '.fwc-m.sys{align-self:center;background:#e8f0ff;color:#0a3a96;font-size:13px;text-align:center;max-width:92%}' +
-    '.fwc-bar{padding:8px 12px 0;display:flex;gap:8px;flex-wrap:wrap}' +
-    '.fwc-chip{border:1px solid #c9d6ee;background:#fff;color:#0a3a96;border-radius:99px;font:700 13px/1 inherit;padding:9px 12px;cursor:pointer}' +
-    '.fwc-send{display:flex;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px))}' +
-    '.fwc-send input{flex:1;min-width:0;border:1px solid #c9d6ee;border-radius:12px;padding:11px 12px;font:inherit;font-size:16px}' +
-    '.fwc-send button{border:0;background:var(--brand,#0a4bc2);color:#fff;border-radius:12px;padding:0 16px;font:700 15px/1 inherit;cursor:pointer}' +
-    '.fwc-send button:disabled{opacity:.5}' +
-    '.fwc-form{display:none;padding:12px 14px;border-top:1px solid #e1e6ec;background:#fff}' +
-    '.fwc-form.on{display:block}' +
-    '.fwc-form label{display:block;font-size:12px;font-weight:700;color:#6b7785;margin:8px 0 4px}' +
-    '.fwc-form input{width:100%;border:1px solid #c9d6ee;border-radius:10px;padding:10px;font:inherit;font-size:16px}' +
-    '.fwc-form p{font-size:12px;color:#6b7785;margin:8px 0 0}' +
-    '.fwc-row{display:flex;gap:8px;margin-top:10px}.fwc-row button{flex:1;border-radius:10px;padding:11px;font:700 14px/1 inherit;cursor:pointer;border:1px solid #c9d6ee;background:#fff;color:#1a2430}' +
-    '.fwc-row .go{background:var(--brand,#0a4bc2);border-color:var(--brand,#0a4bc2);color:#fff}' +
-    '.fwc-row button:disabled{opacity:.55}' +
-    '.fwc-push{display:none;margin:8px 12px 0;padding:10px 12px;border-radius:12px;background:#e8f0ff;color:#0a3a96;font-size:13px}' +
-    '.fwc-push.on{display:block}.fwc-push p{margin:0 0 8px}.fwc-push .r{display:flex;gap:8px}' +
-    '.fwc-push button{border:0;border-radius:10px;padding:8px 12px;font:700 13px/1 inherit;cursor:pointer;background:#fff;color:#0a3a96}' +
-    '.fwc-push button.go{background:var(--brand,#0a4bc2);color:#fff}' +
-    '.fwc-err{display:none;margin:8px 12px 0;padding:9px 12px;border-radius:10px;background:#fdeceb;color:#a12a22;font-size:13px}' +
-    '.fwc-err.on{display:block}.fwc-err a{color:inherit;font-weight:700}';
-  var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
-
   /* ====== DOM ====== */
   var fab = document.createElement('button');
-  fab.type = 'button'; fab.className = 'fwc-fab'; fab.setAttribute('aria-label', 'Buka chat');
-  fab.innerHTML = '<span>Chat</span><b hidden>0</b>';
+  fab.type = 'button';
+  fab.className = 'fwc-fab' + ($('[data-fwchat]') ? ' off' : '');
+  fab.setAttribute('aria-label', 'Chat langsung ke admin, tanpa WhatsApp');
+  fab.innerHTML = '<span aria-hidden="true">💬</span><span>Chat tanpa WhatsApp</span><b class="fwc-badge" hidden>0</b>';
+
   var sheet = document.createElement('div');
-  sheet.className = 'fwc-sheet'; sheet.setAttribute('role', 'dialog'); sheet.setAttribute('aria-label', 'Chat FAMILI WATER');
+  sheet.className = 'fwc-sheet'; sheet.setAttribute('role', 'dialog'); sheet.setAttribute('aria-modal', 'true');
+  sheet.setAttribute('aria-hidden', 'true'); sheet.setAttribute('aria-label', 'Chat langsung ke admin FAMILI WATER');
   sheet.innerHTML =
-    '<div class="fwc-head"><div><b>Chat FAMILI WATER</b><small>Anonim. Nama dan lokasi baru terkirim kalau Ibu menekan tombolnya.</small></div><button type="button" class="fwc-x" aria-label="Tutup">×</button></div>' +
+    '<div class="fwc-head"><div><b>Chat langsung ke Admin</b><small>Tanpa nomor WhatsApp. Nama &amp; lokasi tidak terkirim otomatis.</small></div><button type="button" class="fwc-x" aria-label="Tutup chat">Tutup</button></div>' +
     '<div class="fwc-list" aria-live="polite"></div>' +
     '<div class="fwc-err"></div>' +
     '<div class="fwc-push"></div>' +
-    '<div class="fwc-bar"><button type="button" class="fwc-chip" data-a="order">Kirim nama &amp; lokasi</button><a class="fwc-chip" style="text-decoration:none" target="_blank" rel="noopener" href="https://wa.me/' + CFG.wa + '?text=' + encodeURIComponent('Halo FAMILI WATER, saya ingin memesan Air Godogan.') + '">Lewat WhatsApp</a></div>' +
+    '<div class="fwc-bar"><button type="button" class="fwc-chip" data-a="order">📍 Kirim nama &amp; lokasi</button><a class="fwc-chip" target="_blank" rel="noopener" href="https://wa.me/' + CFG.wa + '?text=' + encodeURIComponent('Halo FAMILI WATER, saya ingin memesan Air Godogan.') + '">Lewat WhatsApp</a></div>' +
     '<div class="fwc-form">' +
-      '<label for="fwcNama">Nama</label><input id="fwcNama" maxlength="100" autocomplete="name" placeholder="Contoh: Ibu Siti">' +
+      '<label for="fwcNama">Nama Ibu</label><input id="fwcNama" maxlength="100" autocomplete="name" placeholder="Contoh: Ibu Siti">' +
       '<label for="fwcCatatan">Catatan (boleh kosong)</label><input id="fwcCatatan" maxlength="200" placeholder="Contoh: pagar hijau, galon 2">' +
-      '<p>Lokasi rumah hanya dikirim ke admin FAMILI WATER supaya kurir tahu alamatnya. Browser akan meminta izin lokasi.</p>' +
-      '<div class="fwc-row"><button type="button" data-a="batal">Batal</button><button type="button" class="go" data-a="kirimOrder">Izinkan lokasi &amp; kirim</button></div>' +
+      '<p>Nanti HP minta izin lokasi, tekan Izinkan. Hanya admin &amp; kurir yang melihat.</p>' +
+      '<div class="fwc-row"><button type="button" data-a="batal">Batal</button><button type="button" class="go" data-a="kirimOrder">Kirim pesanan</button></div>' +
     '</div>' +
-    '<div class="fwc-send"><input id="fwcInput" maxlength="500" placeholder="Tulis pertanyaan…" autocomplete="off" enterkeyhint="send"><button type="button" data-a="kirim">Kirim</button></div>';
+    '<div class="fwc-send"><input id="fwcInput" maxlength="500" placeholder="Ketik pesan Ibu di sini" autocomplete="off" enterkeyhint="send"><button type="button" data-a="kirim">Kirim</button></div>';
   document.body.appendChild(fab);
   document.body.appendChild(sheet);
 
   var listEl = $('.fwc-list', sheet), errEl = $('.fwc-err', sheet), pushEl = $('.fwc-push', sheet), formEl = $('.fwc-form', sheet),
-      inp = $('#fwcInput', sheet), badge = $('b', fab), btnSend = $('[data-a="kirim"]', sheet),
+      inp = $('#fwcInput', sheet), btnSend = $('[data-a="kirim"]', sheet),
       btnOrder = $('[data-a="kirimOrder"]', sheet);
 
   function showErr(t, wa) {
@@ -117,7 +86,7 @@
     listEl.textContent = '';
     var hi = document.createElement('div');
     hi.className = 'fwc-m sys';
-    hi.textContent = 'Halo! Silakan tanya-tanya soal air godogan. Kalau mau pesan, tekan “Kirim nama & lokasi”.';
+    hi.textContent = 'Halo Bu! Silakan tanya apa saja. Mau pesan? Tekan “Kirim nama & lokasi”.';
     listEl.appendChild(hi);
     S.msgs.forEach(function (m) {
       var d = document.createElement('div');
@@ -130,15 +99,15 @@
     if (S.chat && S.chat.status === 'closed') {
       var c = document.createElement('div');
       c.className = 'fwc-m sys';
-      c.textContent = 'Percakapan ini sudah ditutup admin. Kirim pesan baru kalau masih perlu bantuan.';
+      c.textContent = 'Percakapan sudah ditutup admin. Tulis pesan baru kalau masih perlu bantuan.';
       listEl.appendChild(c);
     }
     if (near || S.msgs.length < 2) listEl.scrollTop = listEl.scrollHeight;
   }
   function renderBadge() {
     var n = (S.chat && S.chat.unreadPengunjung) || 0;
-    badge.textContent = n > 9 ? '9+' : String(n);
-    badge.hidden = !(n > 0 && !S.open);
+    var txt = n > 9 ? '9+' : String(n), hide = !(n > 0 && !S.open);
+    document.querySelectorAll('.fwc-badge').forEach(function (b) { b.textContent = txt; b.hidden = hide; });
   }
   function onChat() {
     renderBadge();
@@ -203,15 +172,15 @@
       var izin = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
       if (izin !== 'granted') return false;
       return await daftarkanToken();
-    } catch (e) { console.error('FWChat push', e); showErr('Notifikasi belum bisa diaktifkan di perangkat ini. Chat tetap bisa dipakai.'); return false; }
+    } catch (e) { console.error('FWChat push', e); showErr('Pemberitahuan belum bisa diaktifkan di HP ini. Chat tetap bisa dipakai.'); return false; }
   }
 
   function renderPush() {
     var h = '';
     if (pushDidukung() && Notification.permission === 'default' && !S.pushSkip) {
-      h = '<p>Aktifkan notifikasi supaya balasan admin sampai ke HP Ibu, walau halaman ini ditutup.</p><div class="r"><button type="button" class="go" data-a="push">Aktifkan</button><button type="button" data-a="pushnanti">Nanti</button></div>';
+      h = '<p>Aktifkan pemberitahuan supaya balasan admin masuk ke HP Ibu.</p><div class="r"><button type="button" class="go" data-a="push">Aktifkan</button><button type="button" data-a="pushnanti">Nanti</button></div>';
     } else if (iosTanpaPush() && lsGet('fw_ios_hint') !== '1') {
-      h = '<p>Untuk menerima notifikasi di iPhone, buka web ini lewat Safari, tekan tombol Bagikan, lalu pilih Tambahkan ke Layar Utama. Buka lewat ikon itu.</p><div class="r"><button type="button" data-a="ioshint">Mengerti</button></div>';
+      h = '<p>Di iPhone: buka lewat Safari, tekan Bagikan, lalu pilih “Tambahkan ke Layar Utama”.</p><div class="r"><button type="button" data-a="ioshint">Mengerti</button></div>';
     }
     pushEl.innerHTML = h;
     pushEl.className = 'fwc-push' + (h ? ' on' : '');
@@ -288,15 +257,39 @@
     btnOrder.disabled = false;
   }
 
+  /* Sheet mengikuti area yang terlihat, supaya kolom ketik tidak tertutup keyboard HP */
+  function fitVV(keBawah) {
+    var v = window.visualViewport;
+    if (!v || !S.open) return;
+    sheet.classList.add('vv');
+    sheet.style.setProperty('--fwc-h', v.height + 'px');
+    sheet.style.setProperty('--fwc-t', v.offsetTop + 'px');
+    if (keBawah) listEl.scrollTop = listEl.scrollHeight;
+  }
+
   function buka() {
-    S.open = true; sheet.classList.add('on'); fab.style.display = 'none'; renderMsgs(); renderBadge();
-    renderPush();
+    if (S.open) return;
+    if (!S.hist) { try { history.pushState({ fwchat: 1 }, '', location.href); S.hist = true; } catch (e) {} }
+    S.open = true;
+    document.documentElement.classList.add('fwc-lock');   // halaman di belakang tidak ikut scroll
+    sheet.classList.add('on'); sheet.setAttribute('aria-hidden', 'false');
+    fitVV(false); renderMsgs(); renderBadge(); renderPush();
     init().then(function () {
       onChat();
       if (pushDidukung() && Notification.permission === 'granted') daftarkanToken().catch(function () {});
     }).catch(function (e) { showErr(pesanError(e), true); });
   }
-  function tutup() { S.open = false; sheet.classList.remove('on'); fab.style.display = ''; tutupForm(); renderBadge(); }
+  function selesai() {
+    S.open = false;
+    document.documentElement.classList.remove('fwc-lock');
+    sheet.classList.remove('on'); sheet.setAttribute('aria-hidden', 'true');
+    tutupForm(); renderBadge();
+    if (document.activeElement && sheet.contains(document.activeElement)) document.activeElement.blur();
+  }
+  function tutup() {
+    if (S.open && S.hist) { S.hist = false; history.back(); }
+    selesai();
+  }
 
   fab.addEventListener('click', buka);
   $('.fwc-x', sheet).addEventListener('click', tutup);
@@ -307,6 +300,11 @@
   });
   inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); kirim(); } });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && S.open) tutup(); });
+  window.addEventListener('popstate', function () { if (S.open && S.hist) { S.hist = false; selesai(); } });
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', function () { fitVV(true); });
+    window.visualViewport.addEventListener('scroll', function () { fitVV(false); });
+  }
   document.addEventListener('click', function (e) {
     var t = e.target.closest && e.target.closest('[data-fwchat]');
     if (t) { e.preventDefault(); buka(); }
