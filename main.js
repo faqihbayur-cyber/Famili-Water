@@ -18,6 +18,8 @@ localStorage.setItem(K_DAY,day);
 if(!localStorage.getItem(K_ID))localStorage.setItem(K_ID,Math.random().toString(36).slice(2)+Date.now().toString(36));
 }).catch(function(){});
 }catch(e){}})();
+/* ---- Service worker (tanpa cache; penerima push). Daftar di paling atas supaya tetap jalan walau script di bawah error. ---- */
+(function(){try{if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('/fw-sw.js').catch(function(){})})}catch(e){}})();
 const $=(s,c=document)=>c.querySelector(s),$$=(s,c=document)=>[...c.querySelectorAll(s)];
 function showToast(msg,err){let b=$('.toast-box');if(!b){b=document.createElement('div');b.className='toast-box';document.body.appendChild(b)}
 const t=document.createElement('div');t.className='toast'+(err?' err':'');t.textContent=msg;b.appendChild(t);setTimeout(()=>t.remove(),3200)}
