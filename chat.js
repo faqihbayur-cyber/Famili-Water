@@ -16,7 +16,7 @@
     },
     siteKey: '6LfU2xQuAAAAANTKwl3Nh38L2P4qHkP3VAjET6p-', // reCAPTCHA Enterprise (App Check)
     region: 'asia-southeast2',
-    idCabang: 'ISI_ID_CABANG',                            // ID dokumen di koleksi kantorCabang
+    idCabang: 'UtSutZUJnmkKX57I8MwO',                          // ID dokumen di koleksi kantorCabang
     wa: '6285287416936',
     sdk: 'https://www.gstatic.com/firebasejs/10.14.1/'
   };
